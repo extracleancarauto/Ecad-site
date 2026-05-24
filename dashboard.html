@@ -732,6 +732,41 @@ function setSel(id, val) {
 document.querySelectorAll('.panel').forEach(function(p) {
   p.addEventListener('click', function(e) { if (e.target===p) closePanel(p.id); });
 });
+
+function setupRealtime() {
+  try {
+    window._rtChannel = db.channel('ecad-bookings')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'service_records'
+      }, function(payload) {
+        var tier = payload.new ? (payload.new.service_tier || 'New booking') : 'New booking';
+        var clientId = payload.new ? payload.new.client_id : null;
+        var client = clientId ? allClients.find(function(c) { return c.id === clientId; }) : null;
+        var name = client ? client.full_name : 'New client';
+        document.getElementById('rt-msg').textContent = name + ' — ' + tier;
+        document.getElementById('rt-alert').style.display = 'block';
+      })
+      .subscribe(function(status) {
+        console.log('Realtime status:', status);
+      });
+  } catch(e) {
+    console.log('Realtime setup error:', e);
+  }
+}
+
+function dismissAlert() {
+  document.getElementById('rt-alert').style.display = 'none';
+  refreshData();
+}
+
+async function refreshData() {
+  var btn = document.querySelector('[onclick="refreshData()"]');
+  if (btn) { btn.textContent = 'Refreshing...'; btn.disabled = true; }
+  await loadAll();
+  if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
+}
 </script>
 </body>
 </html>
