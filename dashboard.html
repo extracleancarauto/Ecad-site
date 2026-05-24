@@ -172,6 +172,7 @@ body{background:#0a0a0a;color:#f0ede6;font-family:'Sora',sans-serif;font-weight:
         <button class="btn sm grn" id="btn-add-cl" onclick="openAddClient()">+ Add Client</button>
         <a href="/availability" class="btn sm gho">Availability</a>
         <button class="btn sm gho" onclick="refreshData()">&#8635; Refresh</button>
+        <button class="btn sm gho" onclick="openSoundPanel()">&#127925; Sound</button>
         <button class="btn sm gho" onclick="doLogout()">Log Out</button>
       </div>
     </div>
@@ -361,7 +362,7 @@ function doLogin() {
     applyRole();
     loadAll();
     setupRealtime();
-    // Request notification permission
+    initSoundSettings();
     if (window.Notification && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -747,6 +748,7 @@ function setupRealtime() {
         var name = client ? client.full_name : 'New client';
         document.getElementById('rt-msg').textContent = name + ' — ' + tier;
         document.getElementById('rt-alert').style.display = 'block';
+        fireNotification();
       })
       .subscribe(function(status) {
         console.log('Realtime status:', status);
@@ -761,6 +763,84 @@ function dismissAlert() {
   refreshData();
 }
 
+
+// -- SOUND & VIBRATION --
+var notifAudio = null;
+
+function initSoundSettings() {
+  var vibOn   = localStorage.getItem('ecad_vib') !== 'false';
+  var sndOn   = localStorage.getItem('ecad_snd') === 'true';
+  var sndData = localStorage.getItem('ecad_snd_data');
+  var sndName = localStorage.getItem('ecad_snd_name');
+  var vt = document.getElementById('vib-toggle');
+  var st = document.getElementById('snd-toggle');
+  if (vt) vt.checked = vibOn;
+  if (st) st.checked = sndOn;
+  if (sndOn && sndData) {
+    notifAudio = new Audio(sndData);
+    var wrap = document.getElementById('snd-upload-wrap');
+    var nm   = document.getElementById('snd-name');
+    if (wrap) wrap.style.display = 'block';
+    if (nm)   { nm.textContent = '✓ Saved: ' + (sndName || 'audio file'); nm.style.display = 'block'; }
+  }
+  if (vt) vt.onchange = function() { localStorage.setItem('ecad_vib', this.checked ? 'true' : 'false'); };
+  if (st) st.onchange = function() {
+    localStorage.setItem('ecad_snd', this.checked ? 'true' : 'false');
+    toggleSoundUpload();
+  };
+}
+
+function fireNotification() {
+  var vt = document.getElementById('vib-toggle');
+  if (vt && vt.checked && navigator.vibrate) { navigator.vibrate([300, 100, 300, 100, 500]); }
+  var st = document.getElementById('snd-toggle');
+  if (st && st.checked && notifAudio) {
+    notifAudio.currentTime = 0;
+    notifAudio.play().catch(function(e) { console.log('Audio:', e); });
+  }
+}
+
+function openSoundPanel() { openPanel('pnl-sound'); }
+
+function toggleSoundUpload() {
+  var wrap = document.getElementById('snd-upload-wrap');
+  var st   = document.getElementById('snd-toggle');
+  if (wrap && st) wrap.style.display = st.checked ? 'block' : 'none';
+}
+
+function loadSoundFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var b64 = e.target.result;
+    notifAudio = new Audio(b64);
+    try {
+      localStorage.setItem('ecad_snd_data', b64);
+      localStorage.setItem('ecad_snd_name', file.name);
+      localStorage.setItem('ecad_snd', 'true');
+      var st = document.getElementById('snd-toggle');
+      if (st) st.checked = true;
+    } catch(err) { console.log('Storage full:', err); }
+    var nm = document.getElementById('snd-name');
+    if (nm) { nm.textContent = '✓ Saved: ' + file.name; nm.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function testSound() {
+  if (notifAudio) {
+    notifAudio.currentTime = 0;
+    notifAudio.play().catch(function(e) { console.log('Audio test:', e); });
+  } else { alert('Please upload a sound file first.'); }
+}
+
+function dismissAlert() {
+  var a = document.getElementById('rt-alert');
+  if (a) a.style.display = 'none';
+  refreshData();
+}
+
 async function refreshData() {
   var btn = document.querySelector('[onclick="refreshData()"]');
   if (btn) { btn.textContent = 'Refreshing...'; btn.disabled = true; }
@@ -768,5 +848,41 @@ async function refreshData() {
   if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
 }
 </script>
+
+<!-- SOUND SETTINGS PANEL -->
+<div class="panel" id="pnl-sound">
+  <div class="pc" style="max-width:400px">
+    <div class="ph">
+      <div><div class="ph-title">Notification Sound</div><div class="ph-sub">Plays when a new booking arrives</div></div>
+      <button class="btn sm gho" onclick="closePanel('pnl-sound')">&#10005;</button>
+    </div>
+    <div class="pb">
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--sl-d);margin-bottom:10px">Vibration</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border:1px solid var(--bs);border-radius:6px">
+          <input type="checkbox" id="vib-toggle" checked style="width:18px;height:18px;accent-color:var(--gn)">
+          <label for="vib-toggle" style="font-size:13px;color:var(--tx);font-weight:300">Vibrate on new booking</label>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--sl-d);margin-bottom:10px">Sound</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border:1px solid var(--bs);border-radius:6px;margin-bottom:8px">
+          <input type="checkbox" id="snd-toggle" style="width:18px;height:18px;accent-color:var(--gn)" onchange="toggleSoundUpload()">
+          <label for="snd-toggle" style="font-size:13px;color:var(--tx);font-weight:300">Play sound on new booking</label>
+        </div>
+        <div id="snd-upload-wrap" style="display:none">
+          <div style="font-size:11px;color:var(--mu);margin-bottom:8px">Upload an audio file (MP3, WAV, OGG)</div>
+          <input type="file" id="snd-file" accept="audio/*" onchange="loadSoundFile(this)" style="background:var(--s3);border:1px solid var(--bs);border-radius:4px;color:var(--tx);font-size:12px;padding:8px;width:100%">
+          <div id="snd-name" style="font-size:11px;color:var(--gn);margin-top:8px;display:none"></div>
+          <button class="btn sm" style="margin-top:10px;width:100%" onclick="testSound()">&#9654; Test Sound</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--di);line-height:1.65;padding:12px 14px;background:var(--s2);border-radius:6px;border:1px solid var(--bs)">
+        Sound plays through your phone speaker. Make sure your phone is not on silent for audio alerts. Vibration works regardless of silent mode.
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
