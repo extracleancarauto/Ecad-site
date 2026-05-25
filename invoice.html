@@ -205,6 +205,27 @@ document.getElementById('inv-date').value = today;
 const next35 = new Date(); next35.setDate(next35.getDate()+35);
 document.getElementById('svc-next').value = next35.toISOString().split('T')[0];
 
+// ── Pre-fill from dashboard URL params ──────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var name  = params.get('name');
+  var phone = params.get('phone');
+  var addr  = params.get('addr');
+  if (name)  document.getElementById('cl-name').value  = name;
+  if (phone) document.getElementById('cl-phone').value = phone;
+  if (addr)  document.getElementById('cl-addr').value  = addr;
+  // Auto-generate & show download button if we came from dashboard
+  if (name || phone) {
+    generateInvoice();
+    // Show a prominent download prompt
+    var dlBar = document.createElement('div');
+    dlBar.style.cssText = 'background:rgba(201,120,60,.12);border:1px solid rgba(201,120,60,.4);border-radius:6px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
+    dlBar.innerHTML = '<span style="font-size:12px;color:#e8a46a">&#128438; Invoice pre-filled for <strong>' + (name||phone) + '</strong> — fill in cost, then download.</span>'
+      + '<button class="btn print-btn" style="margin-top:0;width:auto;padding:10px 20px" onclick="window.print()">Download / Print</button>';
+    document.querySelector('.controls').insertBefore(dlBar, document.querySelector('.controls').firstChild);
+  }
+})();
+
 function addAddonRow() {
   const row = document.createElement('div');
   row.className = 'addon-row';

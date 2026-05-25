@@ -467,8 +467,14 @@ function renderClients(list) {
       if (diff < 0) dueBadge = '<span class="badge b-ov">Overdue</span>';
       else if (diff <= 7) dueBadge = '<span class="badge b-due">Due Soon</span>';
     }
+    var _n = encodeURIComponent(c.full_name||'');
+    var _p = encodeURIComponent(c.phone||'');
+    var _a = encodeURIComponent(c.service_address||'');
+    var invoiceBtn = role === 'admin'
+      ? '<button class=\"btn sm cop\" style=\"margin-left:8px;font-size:9px;padding:4px 10px\" onclick=\"event.stopPropagation();openInvoice(\\'' + _n + '\\',\\'' + _p + '\\',\\'' + _a + '\\')\">&#128438; Invoice</button>'
+      : '';
     return '<div class="cl-row" data-id="' + c.id + '" onclick="viewClient(this.dataset.id)">'
-      + '<div><div class="cl-name">' + c.full_name + ' ' + plan + ' ' + dueBadge + '</div>'
+      + '<div><div class="cl-name">' + c.full_name + ' ' + plan + ' ' + dueBadge + invoiceBtn + '</div>'
       + '<div class="cl-meta"><span>&#128222; ' + (c.phone||'\u2014') + '</span>'
       + (c.service_address ? '<span>&#128205; ' + c.service_address + '</span>' : '')
       + (c.referral_source ? '<span>&#128279; ' + c.referral_source + '</span>' : '')
@@ -847,6 +853,15 @@ async function refreshData() {
   await loadAll();
   if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
 }
+
+function openInvoice(name, phone, addr) {
+  var params = new URLSearchParams();
+  params.set('name',  decodeURIComponent(name));
+  params.set('phone', decodeURIComponent(phone));
+  params.set('addr',  decodeURIComponent(addr));
+  window.open('invoice.html?' + params.toString(), '_blank');
+}
+
 </script>
 
 <!-- SOUND SETTINGS PANEL -->
