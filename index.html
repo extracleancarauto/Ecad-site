@@ -1253,7 +1253,8 @@ async function submitForm() {
         date:        date,
         time:        time,
         address:     addr,
-        phone:       phone
+        phone:       phone,
+        reply_to:    fEmail.value.trim()
       }).catch(function(e) { console.log('Customer email:', e); })
     );
   }
@@ -1266,7 +1267,8 @@ async function submitForm() {
       service:     svc,
       date:        date,
       time:        time,
-      address:     addr
+      address:     addr,
+      reply_to:    'extracleancarwash@gmail.com'
     }).catch(function(e) { console.log('Owner email:', e); })
   );
 
