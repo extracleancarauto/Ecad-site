@@ -1269,7 +1269,12 @@ async function submitForm() {
       time:        time,
       address:     addr,
       reply_to:    'extracleancarwash@gmail.com'
-    }).catch(function(e) { console.log('Owner email:', e); })
+    }).then(function(res) {
+      console.log('Owner email sent:', res.status, res.text);
+    }).catch(function(e) {
+      console.log('Owner email error:', e);
+      alert('Email error: ' + JSON.stringify(e));
+    })
   );
 
   await Promise.all(emailPromises);
