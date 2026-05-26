@@ -996,7 +996,7 @@ async function loadOverview() {
       { data: mData }
     ] = await Promise.all([
       db.from('clients').select('*', { count: 'exact', head: true }),
-      db.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      db.from('service_records').select('*', { count: 'exact', head: true }).eq('payment_status', 'Pending'),
       db.from('service_records').select('*', { count: 'exact', head: true }),
       db.from('service_records').select('id').gte('created_at', monthStart)
     ]);
@@ -1012,8 +1012,8 @@ async function loadOverview() {
     else b.classList.remove('vis');
 
     // Recent bookings snippet
-    const { data: recent } = await db.from('bookings')
-      .select('client_name, phone, service, date, status')
+    const { data: recent } = await db.from('service_records')
+      .select('service_tier, service_date, payment_status, clients(full_name, phone)')
       .order('created_at', { ascending: false })
       .limit(6);
 
@@ -1024,11 +1024,11 @@ async function loadOverview() {
     }
     el.innerHTML = tblHtml(
       ['Client', 'Service', 'Date', 'Status'],
-      recent.map(b => [
-        `<span class="td-name">${x(b.client_name)}</span><div class="td-phone">${x(b.phone)}</div>`,
-        `<span class="td-m">${x(b.service)}</span>`,
-        `<span class="td-m">${fd(b.date)}</span>`,
-        sBadge(b.status)
+      recent.map(r => [
+        `<span class="td-name">${x(r.clients?.full_name || '—')}</span><div class="td-phone">${x(r.clients?.phone || '')}</div>`,
+        `<span class="td-m">${x(r.service_tier || '—')}</span>`,
+        `<span class="td-m">${fd(r.service_date)}</span>`,
+        pBadge(r.payment_status)
       ])
     );
   } catch (e) { console.error('overview', e); }
@@ -1041,13 +1041,17 @@ async function loadPending() {
   wrap.innerHTML = '<div class="loading">Loading</div>';
 
   try {
-    const { data, error } = await db.from('bookings')
-      .select('*')
-      .eq('status', 'pending')
+    const { data, error } = await db.from('service_records')
+      .select('*, clients(full_name, phone, service_address)')
+      .eq('payment_status', 'Pending')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     meta.textContent = `${data.length} pending`;
+
+    const b = document.getElementById('badge-pending');
+    if (data.length > 0) { b.textContent = data.length; b.classList.add('vis'); }
+    else b.classList.remove('vis');
 
     if (!data.length) {
       wrap.innerHTML = '<div class="empty"><div class="empty-ico">✓</div><p class="empty-txt">All clear — no pending bookings</p></div>';
@@ -1055,96 +1059,63 @@ async function loadPending() {
     }
 
     wrap.innerHTML = tblHtml(
-      ['Client', 'Phone', 'Service', 'Date', 'Time', 'Address', 'Notes', 'Actions'],
-      data.map(b => {
-        const bdate = b.service_date || b.preferred_date || b.booking_date || b.date || '';
+      ['Client', 'Phone', 'Service', 'Date', 'Address', 'Notes', 'Actions'],
+      data.map(r => {
         const inv = encodeURIComponent(JSON.stringify({
-          name:    b.client_name  || '',
-          phone:   b.phone        || '',
-          service: b.service      || '',
-          date:    bdate,
-          time:    b.time         || '',
-          address: b.address      || '',
-          notes:   b.notes        || '',
-          id:      b.id           || ''
+          name:    r.clients?.full_name        || '',
+          phone:   r.clients?.phone            || '',
+          service: r.service_tier              || '',
+          date:    r.service_date              || '',
+          address: r.clients?.service_address  || '',
+          notes:   r.job_notes                 || '',
+          id:      r.id
         }));
         return [
-          `<span class="td-name">${x(b.client_name || '—')}</span>`,
-          `<span class="td-m">${x(b.phone || '—')}</span>`,
-          `<span class="td-m">${x(b.service || '—')}</span>`,
-          `<span class="td-m">${fd(bdate)}</span>`,
-          `<span class="td-m">${x(b.time || '—')}</span>`,
-          `<span class="td-m" style="max-width:150px;white-space:normal;display:inline-block;">${x(b.address || '—')}</span>`,
-          `<span class="td-d" style="max-width:120px;white-space:normal;display:inline-block;">${x(b.notes || '—')}</span>`,
+          `<span class="td-name">${x(r.clients?.full_name || '—')}</span>`,
+          `<span class="td-m">${x(r.clients?.phone || '—')}</span>`,
+          `<span class="td-m">${x(r.service_tier || '—')}</span>`,
+          `<span class="td-m">${fd(r.service_date)}</span>`,
+          `<span class="td-m" style="max-width:140px;white-space:normal;display:inline-block;">${x(r.clients?.service_address || '—')}</span>`,
+          `<span class="td-d" style="max-width:130px;white-space:normal;display:inline-block;">${x(r.job_notes || '—')}</span>`,
           `<div style="display:flex;gap:6px;flex-wrap:wrap;">
-             <button class="btn-act btn-approve" onclick="approve('${b.id}')">Approve</button>
-             <button class="btn-act btn-reject"  onclick="reject('${b.id}')">Reject</button>
+             <button class="btn-act btn-approve" onclick="approveSR('${r.id}')">Approve</button>
+             <button class="btn-act btn-reject"  onclick="rejectSR('${r.id}')">Reject</button>
              <button class="btn-act btn-inv" data-inv="${inv}" onclick="goInvoice(this)">Invoice →</button>
            </div>`
         ];
       })
     );
-  } catch (e) {
+  } catch(e) {
     wrap.innerHTML = `<div class="empty"><p class="empty-txt" style="color:var(--red)">${x(e.message)}</p></div>`;
   }
 }
 
 async function refreshBadge() {
   try {
-    const { count } = await db.from('bookings')
+    const { count } = await db.from('service_records')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
+      .eq('payment_status', 'Pending');
     const b = document.getElementById('badge-pending');
     if (count > 0) { b.textContent = count; b.classList.add('vis'); }
     else b.classList.remove('vis');
   } catch (_) {}
 }
 
-async function approve(id) {
+async function approveSR(id) {
   try {
-    const { data: bk } = await db.from('bookings').select('*').eq('id', id).single();
-
-    await db.from('bookings').update({ status: 'approved' }).eq('id', id);
-
-    if (bk) {
-      const { data: existing } = await db.from('clients')
-        .select('id').eq('phone', bk.phone).maybeSingle();
-
-      let cid = existing?.id;
-      if (!cid) {
-        const { data: nc } = await db.from('clients').insert([{
-          full_name:       bk.client_name,
-          phone:           bk.phone,
-          service_address: bk.address || null,
-          referral_source: 'Website Booking'
-        }]).select('id').single();
-        cid = nc?.id;
-      }
-
-      if (cid) {
-        await db.from('service_records').insert([{
-          client_id:      cid,
-          service_date:   bk.service_date || bk.preferred_date || bk.booking_date || bk.date,
-          service_tier:   bk.service,
-          job_notes:      bk.notes || null,
-          payment_status: 'Pending'
-        }]);
-      }
-    }
-
-    toast('Booking approved — service record created', 'ok');
+    await db.from('service_records').update({ payment_status: 'Confirmed' }).eq('id', id);
+    toast('Booking confirmed', 'ok');
     loadPending();
     refreshBadge();
-    // refresh stat
     const el = document.getElementById('s-pending');
     if (el && el.textContent !== '—') el.textContent = Math.max(0, parseInt(el.textContent) - 1);
   } catch(e) { toast(e.message, 'err'); }
 }
 
-async function reject(id) {
-  if (!confirm('Reject this booking? This action cannot be undone.')) return;
+async function rejectSR(id) {
+  if (!confirm('Reject this booking? This cannot be undone.')) return;
   try {
-    await db.from('bookings').update({ status: 'rejected' }).eq('id', id);
+    await db.from('service_records').update({ payment_status: 'Rejected' }).eq('id', id);
     toast('Booking rejected', '');
     loadPending();
     refreshBadge();
@@ -1158,8 +1129,8 @@ async function loadBookings() {
   wrap.innerHTML = '<div class="loading">Loading</div>';
 
   try {
-    const { data, error } = await db.from('bookings')
-      .select('*')
+    const { data, error } = await db.from('service_records')
+      .select('*, clients(full_name, phone)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1171,18 +1142,14 @@ async function loadBookings() {
     }
 
     wrap.innerHTML = tblHtml(
-      ['Client', 'Phone', 'Service', 'Date', 'Time', 'Status'],
-      data.map(b => {
-        const bdate = b.service_date || b.preferred_date || b.booking_date || b.date || '';
-        return [
-          `<span class="td-name">${x(b.client_name || '—')}</span>`,
-          `<span class="td-m">${x(b.phone || '—')}</span>`,
-          `<span class="td-m">${x(b.service || '—')}</span>`,
-          `<span class="td-m">${fd(bdate)}</span>`,
-          `<span class="td-m">${x(b.time || '—')}</span>`,
-          sBadge(b.status)
-        ];
-      })
+      ['Client', 'Phone', 'Service', 'Date', 'Status'],
+      data.map(r => [
+        `<span class="td-name">${x(r.clients?.full_name || '—')}</span>`,
+        `<span class="td-m">${x(r.clients?.phone || '—')}</span>`,
+        `<span class="td-m">${x(r.service_tier || '—')}</span>`,
+        `<span class="td-m">${fd(r.service_date)}</span>`,
+        pBadge(r.payment_status)
+      ])
     );
   } catch(e) {
     wrap.innerHTML = `<div class="empty"><p class="empty-txt" style="color:var(--red)">${x(e.message)}</p></div>`;
