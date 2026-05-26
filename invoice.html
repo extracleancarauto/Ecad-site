@@ -85,6 +85,8 @@ body{background:#0a0a0a;color:var(--text);font-family:'Sora',sans-serif;font-wei
   .inv-footer{flex-direction:column;gap:8px}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('v8hsDP3tvGl5hTKRPOA7f');</script>
 </head>
 <body>
 <div class="wrap">
@@ -97,6 +99,7 @@ body{background:#0a0a0a;color:var(--text);font-family:'Sora',sans-serif;font-wei
       <div class="fg"><label>Date</label><input type="date" id="inv-date"></div>
       <div class="fg"><label>Client Name</label><input type="text" id="cl-name" placeholder="Full name"></div>
       <div class="fg"><label>Phone / WhatsApp</label><input type="text" id="cl-phone" placeholder="(876) 000-0000"></div>
+      <div class="fg"><label>Email <span style="color:var(--dim);font-weight:300;text-transform:none;letter-spacing:0">(for confirmation)</span></label><input type="email" id="cl-email" placeholder="client@email.com"></div>
       <div class="fg full"><label>Vehicle</label><input type="text" id="cl-vehicle" placeholder="2021 Toyota Corolla — Silver — AB 1234"></div>
       <div class="fg full"><label>Service Address</label><input type="text" id="cl-addr" placeholder="Service location"></div>
       <div class="fg full"><label>Service Tier</label>
@@ -138,7 +141,7 @@ body{background:#0a0a0a;color:var(--text);font-family:'Sora',sans-serif;font-wei
       <div class="fg full"><label>Notes</label><textarea id="svc-notes" placeholder="Any special instructions, concerns addressed, or additional context..."></textarea></div>
     </div>
     <div class="btn-row">
-      <button class="btn" onclick="generateInvoice()">Generate Invoice</button>
+      <button class="btn" onclick="generateInvoice(); sendConfirmationEmails();">Generate Invoice</button>
       <button class="btn ghost" onclick="resetForm()">Reset</button>
     </div>
     <button class="btn print-btn" onclick="window.print()">&#128438; Print / Save as PDF</button>
@@ -223,6 +226,8 @@ document.getElementById('svc-next').value = next35.toISOString().split('T')[0];
   if (phone) document.getElementById('cl-phone').value = phone;
   if (addr)  document.getElementById('cl-addr').value  = addr;
   if (notes) document.getElementById('svc-notes').value = notes;
+  var email = p.get('email') || '';
+  if (email) document.getElementById('cl-email').value = email;
 
   // Service date → invoice date field
   if (date)  document.getElementById('inv-date').value = date;
@@ -284,6 +289,30 @@ function calcTotal() {
 }
 
 function fmt(n) { return 'JMD ' + Number(n).toLocaleString('en-JM', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+function sendConfirmationEmails() {
+  const name        = document.getElementById('cl-name').value.trim();
+  const clientEmail = document.getElementById('cl-email').value.trim();
+  if (!name) return; // nothing to send without a client name
+  const emailData = {
+    client_name: name,
+    phone:   document.getElementById('cl-phone').value || '—',
+    service: document.getElementById('svc-tier').value,
+    date:    document.getElementById('inv-date').value,
+    time:    '—',
+    address: document.getElementById('cl-addr').value  || '—'
+  };
+  // Owner — always
+  emailjs.send('service_zesixiz', 'template_kr6ydp8', {
+    ...emailData, to_email: 'extracleancarwash@gmail.com', reply_to: 'extracleancarwash@gmail.com'
+  }).catch(e => console.log('Owner email:', e));
+  // Customer — only if email provided
+  if (clientEmail) {
+    emailjs.send('service_zesixiz', 'template_gya3qb7', {
+      ...emailData, to_email: clientEmail, reply_to: clientEmail
+    }).catch(e => console.log('Customer email:', e));
+  }
+}
 
 function generateInvoice() {
   const num = document.getElementById('inv-num').value || '001';

@@ -249,12 +249,10 @@ async function submitIntake() {
 
   // WhatsApp removed — email handles owner alerts
 
-  // Redirect to thank you page
-  var tyParams = new URLSearchParams({
-    name: name, svc: svc,
-    date: date || '', time: time || '', addr: addr
-  });
-  window.location.href = '/thankyou?' + tyParams.toString();
+  // Redirect through loading screen to thank you page
+  var tyParams   = new URLSearchParams({ name: name, svc: svc, date: date||'', time: time||'', addr: addr });
+  var loadParams = new URLSearchParams({ dest: '/thankyou', q: tyParams.toString() });
+  window.location.href = '/loading?' + loadParams.toString();
 }
 </script>
 </body>
