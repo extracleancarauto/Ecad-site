@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Request a fleet quote from Extra Clean Auto Detailing — structured mobile detailing contracts for businesses in Jamaica. 3+ vehicles. Fixed rates, consolidated invoicing.">
+<title>Fleet Quote — Extra Clean Auto Detailing</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMGEwYTBhIiByeD0iNiIvPgogIDx0ZXh0IHg9IjQiIHk9IjI0IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNiOGM4ZDYiPkVDPC90ZXh0Pgo8L3N2Zz4=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & ROOT ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: #0a0a0a;
+  color: #f0ede6;
+  font-family: 'Sora', sans-serif;
+  font-weight: 300;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+/* ── VARIABLES ────────────────────────────────────────────────── */
+:root {
+  --silver:    #b8c8d6;
+  --silver-l:  #d4e2ec;
+  --silver-d:  #586878;
+  --navy:      #162340;
+  --black:     #0a0a0a;
+  --s1:        #111111;
+  --s2:        #181818;
+  --s3:        #1e1e1e;
+  --border:    rgba(184,200,214,0.22);
+  --bsoft:     rgba(255,255,255,0.06);
+  --text:      #f0ede6;
+  --muted:     #8a8378;
+  --dim:       #5a574f;
+  --green:     #4caf82;
+  --green-l:   #6fcfa8;
+  --green-d:   #2d7a5a;
+  --green-b:   rgba(76,175,130,0.18);
+  --copper:    #c9783c;
+  --copper-l:  #e8a46a;
+  --copper-b:  rgba(201,120,60,0.22);
+}
+
+/* ── UTILITIES ────────────────────────────────────────────────── */
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.fade { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+.fade.in { opacity: 1; transform: none; }
+.sec-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--silver-d); margin-bottom: 14px; }
+.sec-label.gr { color: var(--green); }
+.silver { color: var(--silver-l); }
+hr.div { border: none; border-top: 1px solid var(--bsoft); margin: 0; }
+
+/* ── NOISE OVERLAY ────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .3;
+}
+
+/* ── NAV ──────────────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,10,0.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 62px;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-text { display: flex; flex-direction: column; line-height: 1; }
+.nav-logo-main { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; letter-spacing: .04em; color: var(--silver-l); }
+.nav-logo-sub { font-size: 8px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+.nav-links { display: flex; gap: 28px; list-style: none; }
+.nav-links a { font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s; }
+.nav-links a:hover { color: var(--silver-l); }
+.nav-cta { background: var(--green); color: #000; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; padding: 8px 18px; border-radius: 4px; text-decoration: none; transition: background .2s; }
+.nav-cta:hover { background: var(--green-l); }
+.burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+.burger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all .3s; }
+.burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burger.open span:nth-child(2) { opacity: 0; }
+.burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.mob-menu { display: none; flex-direction: column; background: rgba(10,10,10,.98); border-top: 1px solid var(--bsoft); padding: 10px 0 18px; }
+.mob-menu.open { display: flex; }
+.mob-menu a { padding: 13px 24px; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--bsoft); transition: color .2s; }
+.mob-menu a:hover, .mob-menu a.cta-m { color: var(--silver-l); }
+.mob-menu a.cta-m { border-bottom: none; font-weight: 600; }
+
+/* ── PAGE HERO ─────────────────────────────────────────────────── */
+.page-hero {
+  padding: 72px 24px 56px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid var(--bsoft);
+}
+.page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 200px;
+  background: radial-gradient(ellipse, rgba(76,175,130,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.page-hero-eye {
+  display: inline-block;
+  font-size: 10px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--green);
+  border: 1px solid var(--green-b);
+  background: rgba(76,175,130,.06);
+  padding: 5px 14px; border-radius: 2px;
+  margin-bottom: 20px;
+}
+.page-hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(34px,6vw,64px);
+  font-weight: 300;
+  line-height: 1.05;
+  margin-bottom: 14px;
+}
+.page-hero h1 em { font-style: italic; color: var(--green-l); display: block; }
+.page-hero p {
+  font-size: 14px; color: var(--muted);
+  max-width: 520px; margin: 0 auto 24px;
+  line-height: 1.75;
+}
+.hero-tier-badges {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 0;
+}
+.htb {
+  font-size: 11px; color: var(--muted);
+  border: 1px solid var(--bsoft);
+  padding: 6px 13px; border-radius: 2px;
+}
+.htb strong { color: var(--green-l); font-weight: 500; }
+
+/* ── TIER REFERENCE STRIP ──────────────────────────────────────── */
+.tier-strip-sec { padding: 56px 0 48px; position: relative; z-index: 1; }
+.tier-strip-head {
+  margin-bottom: 28px;
+}
+.tier-strip-head h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(22px,3.5vw,36px);
+  font-weight: 300; line-height: 1.1;
+  margin-bottom: 6px;
+}
+.tier-strip-head p { font-size: 13px; color: var(--muted); max-width: 500px; line-height: 1.75; }
+
+.tier-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-bottom: 18px;
+}
+.ts {
+  background: var(--s1);
+  border: 1px solid var(--bsoft);
+  border-radius: 8px;
+  padding: 22px 22px;
+  border-top: 3px solid var(--green-d);
+  transition: border-color .2s, transform .2s;
+}
+.ts:hover { border-color: var(--green-b); transform: translateY(-2px); }
+.ts.featured {
+  border-top-color: var(--green);
+  background: linear-gradient(160deg, rgba(76,175,130,.06) 0%, var(--s1) 100%);
+  position: relative;
+}
+.ts-badge {
+  position: absolute; top: -1px; right: 14px;
+  background: var(--green);
+  color: #000;
+  font-size: 8px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 0 0 3px 3px;
+}
+.ts-tier { font-size: 9px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--green); margin-bottom: 5px; }
+.ts-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; margin-bottom: 3px; }
+.ts-vehicles { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.ts-discount { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--green-l); line-height: 1; }
+.ts-disc-label { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.ts-perks { display: flex; flex-direction: column; gap: 6px; }
+.ts-perk {
+  font-size: 11px; color: var(--muted);
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.5;
+}
+.ts-perk::before {
+  content: '–';
+  position: absolute; left: 0;
+  color: var(--green-d);
+}
+.ts-perk.hi { color: var(--silver); }
+.ts-perk.hi::before { color: var(--green); }
+
+.tier-note {
+  font-size: 12px; color: var(--muted);
+  border: 1px solid var(--bsoft);
+  border-left: 3px solid var(--green-d);
+  border-radius: 4px;
+  background: rgba(76,175,130,.03);
+  padding: 14px 18px;
+  line-height: 1.7;
+}
+.tier-note strong { color: var(--silver); font-weight: 500; }
+
+/* ── FORM SECTION ─────────────────────────────────────────────── */
+.fleet-form-sec {
+  padding: 64px 0 80px;
+  position: relative; z-index: 1;
+  background: var(--s1);
+  border-top: 1px solid var(--bsoft);
+  border-bottom: 1px solid var(--bsoft);
+}
+.fleet-form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.65fr;
+  gap: 48px;
+  align-items: start;
+}
+.ffl-left { position: sticky; top: 90px; }
+.ffl-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--green); margin-bottom: 14px; }
+.ffl-left h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(26px,3.5vw,42px);
+  font-weight: 300; line-height: 1.08;
+  margin-bottom: 14px;
+}
+.ffl-left p { font-size: 13px; color: var(--muted); line-height: 1.75; margin-bottom: 20px; }
+.ffl-contacts { display: flex; flex-direction: column; gap: 10px; }
+.ffl-contact {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--s2);
+  border: 1px solid var(--bsoft);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: border-color .2s;
+}
+.ffl-contact:hover { border-color: var(--border); }
+.ffl-contact-icon { font-size: 16px; flex-shrink: 0; }
+.ffl-contact-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+.ffl-contact-val { font-size: 13px; color: var(--silver-l); }
+
+/* ── FORM ITSELF ─────────────────────────────────────────────── */
+.fleet-form-wrap {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  border-top: 3px solid var(--green);
+  padding: 36px 32px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.fg { display: flex; flex-direction: column; gap: 6px; }
+.fg.full { grid-column: 1 / -1; }
+.fg label { font-size: 11px; font-weight: 500; letter-spacing: .08em; color: var(--silver-d); text-transform: uppercase; }
+.fg .req-star { color: var(--green); margin-left: 3px; }
+.fg input, .fg select, .fg textarea {
+  background: var(--s1);
+  border: 1px solid var(--bsoft);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  padding: 11px 13px;
+  transition: border-color .2s;
+  outline: none;
+  width: 100%;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: var(--green);
+}
+.fg input::placeholder, .fg textarea::placeholder { color: var(--dim); }
+.fg select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a574f'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; cursor: pointer; }
+.fg select option { background: #181818; }
+.fg textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+/* Vehicle count field — highlighted */
+.fg.count-field input {
+  border-color: rgba(76,175,130,.3);
+  background: rgba(76,175,130,.04);
+}
+.fg.count-field label { color: var(--green); }
+.fg.count-field input:focus { border-color: var(--green); }
+
+/* Fleet vehicle list textarea */
+.fg.fleet-list textarea {
+  min-height: 90px;
+  font-size: 12px;
+}
+
+.form-section-label {
+  grid-column: 1 / -1;
+  font-size: 9px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--dim);
+  padding-top: 8px;
+  border-top: 1px solid var(--bsoft);
+  margin-top: 4px;
+}
+
+.btn-fleet-submit {
+  width: 100%;
+  background: var(--green);
+  color: #000;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 14px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+  margin-bottom: 14px;
+}
+.btn-fleet-submit:hover { background: var(--green-l); transform: translateY(-1px); }
+.btn-fleet-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.form-disc {
+  font-size: 11px; color: var(--dim);
+  line-height: 1.65; text-align: center;
+}
+.form-disc strong { color: var(--muted); font-weight: 400; }
+
+/* Success state */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: 48px 24px;
+}
+.suc-icon { font-size: 40px; margin-bottom: 16px; }
+.form-success h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px; font-weight: 300;
+  margin-bottom: 10px;
+}
+.form-success p { font-size: 13px; color: var(--muted); line-height: 1.75; max-width: 380px; margin: 0 auto 12px; }
+
+/* ── WHAT HAPPENS NEXT ─────────────────────────────────────────── */
+.next-sec { padding: 64px 0; position: relative; z-index: 1; }
+.next-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 32px;
+}
+.ns {
+  background: var(--s1);
+  border: 1px solid var(--bsoft);
+  border-radius: 8px;
+  padding: 28px 24px;
+  position: relative;
+}
+.ns-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px; font-weight: 300;
+  color: rgba(76,175,130,.15);
+  position: absolute; top: 16px; right: 20px;
+  line-height: 1;
+}
+.ns-icon { font-size: 22px; margin-bottom: 12px; }
+.ns-title { font-size: 13px; font-weight: 500; color: var(--silver-l); margin-bottom: 7px; }
+.ns-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+/* ── CONTACT STRIP ─────────────────────────────────────────────── */
+.contact-strip-sec {
+  padding: 48px 0;
+  border-top: 1px solid var(--bsoft);
+  position: relative; z-index: 1;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+}
+.cc-card {
+  background: var(--s1);
+  border: 1px solid var(--bsoft);
+  border-radius: 8px;
+  padding: 18px 20px;
+  text-decoration: none;
+  display: flex; align-items: center; gap: 14px;
+  transition: border-color .2s;
+}
+.cc-card:hover { border-color: var(--border); }
+.cc-icon { font-size: 20px; flex-shrink: 0; }
+.cc-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+.cc-val { font-size: 13px; color: var(--silver-l); font-weight: 400; }
+.cc-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── FOOTER ────────────────────────────────────────────────────── */
+footer {
+  background: var(--s1);
+  border-top: 1px solid var(--bsoft);
+  padding: 40px 24px;
+  text-align: center;
+  position: relative; z-index: 1;
+}
+.foot-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 400;
+  color: var(--silver-l);
+  margin-bottom: 6px;
+}
+.foot-logo span { font-weight: 600; }
+.foot-tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: 20px; }
+.foot-links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+.foot-links a { font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: .06em; transition: color .2s; }
+.foot-links a:hover { color: var(--silver-l); }
+.foot-copy { font-size: 10px; color: var(--dim); line-height: 1.75; }
+
+/* ── WHATSAPP FLOAT ────────────────────────────────────────────── */
+.wa-float { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; align-items: center; gap: 10px; }
+.wa-label { background: rgba(10,10,10,.88); color: var(--silver); font-size: 11px; font-weight: 500; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--bsoft); white-space: nowrap; opacity: 0; transform: translateX(6px); transition: opacity .2s, transform .2s; pointer-events: none; }
+.wa-float:hover .wa-label { opacity: 1; transform: none; }
+.wa-btn { width: 50px; height: 50px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(37,211,102,.3); position: relative; }
+.wa-btn svg { width: 26px; height: 26px; fill: #fff; }
+.wa-pulse { position: absolute; inset: -4px; border-radius: 50%; background: rgba(37,211,102,.25); animation: waPulse 2s ease-out infinite; }
+@keyframes waPulse { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(1.6);opacity:0} }
+
+/* ── RESPONSIVE ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-cta { display: none; }
+  .burger { display: flex; }
+  .tier-strip { grid-template-columns: 1fr; }
+  .fleet-form-layout { grid-template-columns: 1fr; }
+  .ffl-left { position: static; }
+  .form-grid { grid-template-columns: 1fr; }
+  .next-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .fleet-form-wrap { padding: 24px 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">
+      <div class="nav-logo-text">
+        <span class="nav-logo-main">Extra Clean</span>
+        <span class="nav-logo-sub">Auto Detailing &middot; Jamaica</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#packages">Packages</a></li>
+      <li><a href="/#interior">Interior</a></li>
+      <li><a href="/#addons">Add-Ons</a></li>
+      <li><a href="/#plans">Maintenance</a></li>
+      <li><a href="/#fleet">Fleet</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <a class="nav-cta" href="/#booking">Book Now</a>
+    <button class="burger" id="burger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mob-menu" id="mobMenu">
+    <a href="/#packages" onclick="closeMenu()">Packages</a>
+    <a href="/#interior" onclick="closeMenu()">Interior</a>
+    <a href="/#addons" onclick="closeMenu()">Add-Ons</a>
+    <a href="/#plans" onclick="closeMenu()">Maintenance</a>
+    <a href="/#fleet" onclick="closeMenu()">Fleet</a>
+    <a href="/#contact" onclick="closeMenu()">Contact</a>
+    <a href="/#booking" class="cta-m" onclick="closeMenu()">Book Now</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HERO ─────────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="page-hero-eye fade">Fleet &amp; Corporate &middot; Jamaica</span>
+    <h1 class="fade">Your Fleet, <em>Our Standard.</em></h1>
+    <p class="fade">One invoice. One contact. One consistent standard across every vehicle. Tell us what you're working with — we'll build a rate and schedule around your operation.</p>
+    <div class="hero-tier-badges fade">
+      <span class="htb"><strong>Tier A</strong> &mdash; 3–5 vehicles &mdash; 10% off</span>
+      <span class="htb"><strong>Tier B</strong> &mdash; 6–14 vehicles &mdash; 15% off</span>
+      <span class="htb"><strong>Tier C</strong> &mdash; 15+ vehicles &mdash; 20% off</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIER REFERENCE ─────────────────────────────────────────────── -->
+<section class="tier-strip-sec">
+  <div class="wrap">
+    <div class="tier-strip-head fade">
+      <span class="sec-label gr">Fleet Pricing Structure</span>
+      <h2>Volume discount, <span class="silver">locked in for the term.</span></h2>
+      <p>Rates are agreed upfront and protected for the duration of your contract. No mid-term adjustments, no surprises at invoicing.</p>
+    </div>
+    <div class="tier-strip fade">
+      <div class="ts">
+        <div class="ts-tier">Tier A</div>
+        <div class="ts-name">Small Fleet</div>
+        <div class="ts-vehicles">3 – 5 vehicles</div>
+        <div class="ts-discount">10%</div>
+        <div class="ts-disc-label">off standard per-vehicle pricing</div>
+        <div class="ts-perks">
+          <div class="ts-perk">Scheduled monthly rotation</div>
+          <div class="ts-perk">Consolidated single invoice</div>
+          <div class="ts-perk">Per-vehicle condition log</div>
+          <div class="ts-perk">Priority over retail clients</div>
+          <div class="ts-perk">WhatsApp schedule reminders</div>
+        </div>
+      </div>
+      <div class="ts featured">
+        <div class="ts-badge">Most Common</div>
+        <div class="ts-tier">Tier B</div>
+        <div class="ts-name">Business Fleet</div>
+        <div class="ts-vehicles">6 – 14 vehicles</div>
+        <div class="ts-discount">15%</div>
+        <div class="ts-disc-label">off standard per-vehicle pricing</div>
+        <div class="ts-perks">
+          <div class="ts-perk hi">Everything in Tier A</div>
+          <div class="ts-perk">Bi-weekly scheduling windows</div>
+          <div class="ts-perk">Dedicated fleet service contact</div>
+          <div class="ts-perk">Mixed service tiers per vehicle</div>
+          <div class="ts-perk">Quarterly condition reporting</div>
+          <div class="ts-perk">Off-peak &amp; early morning slots</div>
+        </div>
+      </div>
+      <div class="ts">
+        <div class="ts-tier">Tier C</div>
+        <div class="ts-name">Corporate Fleet</div>
+        <div class="ts-vehicles">15+ vehicles</div>
+        <div class="ts-discount">20%</div>
+        <div class="ts-disc-label">off standard per-vehicle pricing</div>
+        <div class="ts-perks">
+          <div class="ts-perk hi">Everything in Tier B</div>
+          <div class="ts-perk">Custom schedule &amp; rotation plan</div>
+          <div class="ts-perk">Monthly itemised invoicing</div>
+          <div class="ts-perk">GCT receipt on request</div>
+          <div class="ts-perk">Weekend &amp; on-site compound visits</div>
+          <div class="ts-perk">Annual contract rate lock-in</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier-note fade">
+      <strong>Not sure which tier fits?</strong> Fill out the form below with your vehicle count and types — we'll calculate the right tier and reply with a fully itemised rate sheet within 24 hours. No commitment to quote.
+    </div>
+  </div>
+</section>
+
+<!-- ── FLEET QUOTE FORM ───────────────────────────────────────────── -->
+<section class="fleet-form-sec" id="fleet-form">
+  <div class="wrap">
+    <div class="fleet-form-layout">
+
+      <!-- Left info column -->
+      <div class="ffl-left fade">
+        <div class="ffl-eyebrow">Request a Quote</div>
+        <h2>Tell us about <span class="silver">your fleet.</span></h2>
+        <p>We respond to all fleet enquiries within <strong style="color:var(--silver)">24 hours</strong>. Once we receive your details, we'll send a custom rate sheet based on your vehicle mix and preferred service frequency.</p>
+        <p>All prices quoted in JMD. Fleet agreements run on a monthly or quarterly basis — your choice.</p>
+        <div class="ffl-contacts">
+          <a class="ffl-contact" href="https://wa.me/18768176193" target="_blank" rel="noopener noreferrer">
+            <span class="ffl-contact-icon">&#128172;</span>
+            <div>
+              <div class="ffl-contact-label">WhatsApp — Fastest</div>
+              <div class="ffl-contact-val">(876) 817-6193</div>
+            </div>
+          </a>
+          <a class="ffl-contact" href="mailto:extracleancarwash@gmail.com">
+            <span class="ffl-contact-icon">&#9993;&#65039;</span>
+            <div>
+              <div class="ffl-contact-label">Email</div>
+              <div class="ffl-contact-val">extracleancarwash@gmail.com</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="fleet-form-wrap fade">
+        <div id="fleet-quote-form">
+          <div class="form-grid">
+
+            <!-- Contact details -->
+            <div class="form-section-label">Contact Details</div>
+
+            <div class="fg">
+              <label for="fq-name">Full Name <span class="req-star">*</span></label>
+              <input type="text" id="fq-name" placeholder="Your name" autocomplete="name">
+            </div>
+            <div class="fg">
+              <label for="fq-company">Company / Business Name <span class="req-star">*</span></label>
+              <input type="text" id="fq-company" placeholder="e.g. JamaCo Logistics Ltd.">
+            </div>
+            <div class="fg">
+              <label for="fq-phone">WhatsApp / Phone <span class="req-star">*</span></label>
+              <input type="tel" id="fq-phone" placeholder="+1 (876) 000-0000" autocomplete="tel">
+            </div>
+            <div class="fg">
+              <label for="fq-email">Email Address <span class="req-star">*</span></label>
+              <input type="email" id="fq-email" placeholder="your@company.com" autocomplete="email">
+            </div>
+            <div class="fg full">
+              <label for="fq-location">Business / Vehicle Location <span class="req-star">*</span></label>
+              <input type="text" id="fq-location" placeholder="Where are vehicles usually parked? e.g. New Kingston, Portmore depot">
+            </div>
+
+            <!-- Fleet details -->
+            <div class="form-section-label">Fleet Details</div>
+
+            <div class="fg count-field">
+              <label for="fq-count">Total Number of Vehicles <span class="req-star">*</span></label>
+              <input type="number" id="fq-count" placeholder="e.g. 8" min="3" max="200">
+            </div>
+            <div class="fg">
+              <label for="fq-industry">Industry / Business Type</label>
+              <select id="fq-industry">
+                <option value="" disabled selected>Select your industry</option>
+                <option>Rental / Car Hire</option>
+                <option>Delivery / Courier</option>
+                <option>Corporate Pool / Company Cars</option>
+                <option>JUTA / Charter / Tour Operator</option>
+                <option>Taxi / Route Taxi</option>
+                <option>Construction / Contracting</option>
+                <option>Government / Public Sector</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="fg full fleet-list">
+              <label for="fq-vehicles">Vehicle Mix <span class="req-star">*</span></label>
+              <textarea id="fq-vehicles" placeholder="List your vehicles — type, make, model, year where known.&#10;e.g. 4× Toyota Hiace 2019, 2× Toyota Axio 2021, 1× Suzuki Jimny 2020"></textarea>
+            </div>
+
+            <!-- Service preferences -->
+            <div class="form-section-label">Service Preferences</div>
+
+            <div class="fg">
+              <label for="fq-service">Preferred Service Tier</label>
+              <select id="fq-service">
+                <option value="" disabled selected>Select a service type</option>
+                <optgroup label="── Exterior ──">
+                  <option>Tier 0 — Quick Wash (exterior only)</option>
+                  <option>Tier 1 — Full Clean (exterior full detail)</option>
+                  <option>Tier 2 — Deep Clean</option>
+                  <option>Tier 3 — Showroom Detail</option>
+                </optgroup>
+                <optgroup label="── Interior ──">
+                  <option>Cabin Revival — Refresh (interior)</option>
+                  <option>Cabin Revival — Restore (full interior)</option>
+                </optgroup>
+                <optgroup label="── Combined ──">
+                  <option>Full Clean + Cabin Revival (exterior &amp; interior)</option>
+                  <option>Mixed — varies per vehicle</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="fq-frequency">Service Frequency</label>
+              <select id="fq-frequency">
+                <option value="" disabled selected>How often?</option>
+                <option>Weekly</option>
+                <option>Bi-weekly (every 2 weeks)</option>
+                <option>Monthly</option>
+                <option>Bi-monthly (every 2 months)</option>
+                <option>Custom / Discuss with us</option>
+              </select>
+            </div>
+            <div class="fg full">
+              <label for="fq-notes">Additional Notes or Requirements</label>
+              <textarea id="fq-notes" placeholder="Anything else we should know — specific conditions, access restrictions at your compound, GCT invoice needed, urgency, etc."></textarea>
+            </div>
+          </div>
+
+          <button class="btn-fleet-submit" onclick="submitFleetQuote()">Submit Fleet Quote Request &rarr;</button>
+          <p class="form-disc">We respond to all fleet enquiries within <strong>24 hours</strong>. No deposit or commitment required to receive a quote.</p>
+        </div>
+
+        <div class="form-success" id="fleet-success">
+          <div class="suc-icon">&#9989;</div>
+          <h3>Quote Request Received</h3>
+          <p>Thank you. We'll review your fleet details and send a custom rate sheet to your email and WhatsApp within 24 hours.</p>
+          <p style="font-size:12px;color:var(--dim);">Questions in the meantime?<br><strong style="color:var(--silver);">extracleancarwash@gmail.com &nbsp;&middot;&nbsp; (876) 817-6193</strong></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT HAPPENS NEXT ──────────────────────────────────────────── -->
+<section class="next-sec">
+  <div class="wrap">
+    <div class="fade">
+      <span class="sec-label gr">After You Submit</span>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3.5vw,36px);font-weight:300;margin-bottom:6px;">What happens <span class="silver">next.</span></h2>
+      <p style="font-size:13px;color:var(--muted);max-width:480px;line-height:1.75;margin-bottom:0;">A clear, simple process — from first contact to first service.</p>
+    </div>
+    <div class="next-grid fade">
+      <div class="ns">
+        <div class="ns-num">01</div>
+        <div class="ns-icon">&#128203;</div>
+        <div class="ns-title">We Review Your Fleet Details</div>
+        <div class="ns-body">Within 24 hours we assess your vehicle count, mix, and service preferences to build an accurate rate structure.</div>
+      </div>
+      <div class="ns">
+        <div class="ns-num">02</div>
+        <div class="ns-icon">&#128179;</div>
+        <div class="ns-title">You Receive a Custom Rate Sheet</div>
+        <div class="ns-body">A fully itemised quote sent to your email — per-vehicle pricing, total monthly cost, discount applied, and available service frequencies.</div>
+      </div>
+      <div class="ns">
+        <div class="ns-num">03</div>
+        <div class="ns-icon">&#128197;</div>
+        <div class="ns-title">We Agree a Schedule &amp; Start</div>
+        <div class="ns-body">Once confirmed, we build a rotation around your operation. First service scheduled, agreement signed, and your fleet is on the calendar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT STRIP ─────────────────────────────────────────────── -->
+<section class="contact-strip-sec" id="contact">
+  <div class="wrap">
+    <div class="sec-head fade" style="margin-bottom:24px;">
+      <span class="sec-label">Prefer to reach us directly?</span>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(20px,3vw,32px);font-weight:300;">We respond <span class="silver">fastest on WhatsApp.</span></h2>
+    </div>
+    <div class="contact-grid fade">
+      <a class="cc-card" href="https://wa.me/18768176193" target="_blank" rel="noopener noreferrer">
+        <div class="cc-icon">&#128172;</div>
+        <div>
+          <div class="cc-label">WhatsApp — Fastest Response</div>
+          <div class="cc-val">(876) 817-6193</div>
+          <div class="cc-sub">Mon–Sat &middot; 7:00 AM–6:00 PM &middot; Replies within the hour</div>
+        </div>
+      </a>
+      <a class="cc-card" href="mailto:extracleancarwash@gmail.com">
+        <div class="cc-icon">&#9993;&#65039;</div>
+        <div>
+          <div class="cc-label">Email</div>
+          <div class="cc-val">extracleancarwash@gmail.com</div>
+          <div class="cc-sub">Fleet enquiries, maintenance plans &amp; corporate accounts</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────── -->
+<footer>
+  <div class="foot-logo"><span>Extra Clean</span> Auto Detailing</div>
+  <div class="foot-tag">Mobile Professional Detailing &middot; Jamaica &middot; Not just a wash, a standard</div>
+  <div class="foot-links">
+    <a href="/#gallery">Gallery</a>
+    <a href="/#packages">Packages</a>
+    <a href="/#interior">Interior</a>
+    <a href="/#addons">Add-Ons</a>
+    <a href="/#plans">Maintenance</a>
+    <a href="/#fleet">Fleet</a>
+    <a href="/#contact">Contact</a>
+    <a href="/#booking">Book Now</a>
+  </div>
+  <div class="foot-copy">All prices quoted in Jamaican Dollars (JMD) &middot; Subject to change with 30 days notice &middot; Vehicle condition surcharges apply where applicable<br>(876) 817-6193 &middot; extracleancarwash@gmail.com &middot; @extracleanautoja &middot; @extra.clean.auto &middot; ecadja.com</div>
+</footer>
+
+<!-- WhatsApp Float -->
+<div class="wa-float">
+  <span class="wa-label">Chat on WhatsApp</span>
+  <a class="wa-btn" href="https://wa.me/18768176193" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+    <div class="wa-pulse"></div>
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.549 4.112 1.51 5.845L.057 23.887c-.067.234.004.485.18.651a.638.638 0 00.666.138l6.288-2.064A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.754 9.754 0 01-5.062-1.41l-.362-.214-3.737 1.226 1.248-3.624-.236-.373A9.755 9.755 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+  </a>
+</div>
+
+<script>
+// Scroll fade-in
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), i * 70);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.07 });
+document.querySelectorAll('.fade').forEach(el => obs.observe(el));
+
+// Mobile menu
+function toggleMenu() {
+  document.getElementById('burger').classList.toggle('open');
+  document.getElementById('mobMenu').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('burger').classList.remove('open');
+  document.getElementById('mobMenu').classList.remove('open');
+}
+
+// Supabase + EmailJS
+const { createClient } = supabase;
+emailjs.init({ publicKey: 'b3LqB5Gho1tr958F5' });
+const db = createClient(
+  'https://xsyndxqrcnqsvxcrpkqx.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeW5keHFyY25xc3Z4Y3Jwa3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTQwNzcsImV4cCI6MjA5NTA3MDA3N30.5_2aWEWsKVH4vSO9cfLSVfK9AZMuJe2_CLsL2TPwfwE'
+);
+
+async function submitFleetQuote() {
+  const name     = document.getElementById('fq-name').value.trim();
+  const company  = document.getElementById('fq-company').value.trim();
+  const phone    = document.getElementById('fq-phone').value.trim();
+  const email    = document.getElementById('fq-email').value.trim();
+  const location = document.getElementById('fq-location').value.trim();
+  const count    = document.getElementById('fq-count').value.trim();
+  const vehicles = document.getElementById('fq-vehicles').value.trim();
+
+  if (!name || !company || !phone || !email || !location || !count || !vehicles) {
+    alert('Please fill in all required fields (marked with *) before submitting.');
+    return;
+  }
+
+  const industry  = document.getElementById('fq-industry').value;
+  const service   = document.getElementById('fq-service').value;
+  const frequency = document.getElementById('fq-frequency').value;
+  const notes     = document.getElementById('fq-notes').value.trim();
+
+  const btn = document.querySelector('.btn-fleet-submit');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  // Determine fleet tier based on count
+  const countNum = parseInt(count, 10);
+  let tier = 'Tier A (3–5 vehicles, 10% off)';
+  if (countNum >= 15) tier = 'Tier C (15+ vehicles, 20% off)';
+  else if (countNum >= 6) tier = 'Tier B (6–14 vehicles, 15% off)';
+
+  // Save to Supabase fleet_quotes table
+  try {
+    await db.from('fleet_quotes').insert([{
+      name:            name,
+      company:         company,
+      phone:           phone,
+      email:           email,
+      location:        location,
+      vehicle_count:   countNum,
+      vehicle_list:    vehicles,
+      industry:        industry || null,
+      service_tier:    service || null,
+      frequency:       frequency || null,
+      notes:           notes || null,
+      fleet_tier:      tier,
+      status:          'pending'
+    }]);
+  } catch(e) {
+    console.log('DB note:', e);
+  }
+
+  // Notify owner
+  const ownerBody = [
+    '🚛 NEW FLEET QUOTE REQUEST',
+    '─────────────────────────',
+    'Name: '     + name,
+    'Company: '  + company,
+    'Phone: '    + phone,
+    'Email: '    + email,
+    'Location: ' + location,
+    '',
+    'Vehicle Count: ' + count,
+    'Fleet Tier: '    + tier,
+    'Vehicle Mix:',   vehicles,
+    '',
+    'Industry: '  + (industry  || 'Not specified'),
+    'Service: '   + (service   || 'Not specified'),
+    'Frequency: ' + (frequency || 'Not specified'),
+    '',
+    'Notes: ' + (notes || 'None'),
+  ].join('\n');
+
+  const emailPromises = [];
+
+  // Owner notification email
+  emailPromises.push(
+    emailjs.send('service_zesixiz', 'template_kr6ydp8', {
+      to_email:    'extracleancarwash@gmail.com',
+      client_name: name + ' — ' + company,
+      phone:       phone,
+      service:     'FLEET QUOTE: ' + count + ' vehicles (' + tier + ')',
+      date:        new Date().toLocaleDateString('en-JM'),
+      time:        'Fleet enquiry',
+      address:     location,
+      reply_to:    email
+    }).catch(e => console.log('Owner email:', e))
+  );
+
+  // Customer confirmation email
+  emailPromises.push(
+    emailjs.send('service_zesixiz', 'template_gya3qb7', {
+      to_email:    email,
+      client_name: name,
+      service:     'Fleet Quote Request — ' + count + ' vehicles',
+      date:        new Date().toLocaleDateString('en-JM'),
+      time:        'Within 24 hours',
+      address:     location,
+      phone:       phone,
+      reply_to:    'extracleancarwash@gmail.com'
+    }).catch(e => console.log('Customer email:', e))
+  );
+
+  await Promise.all(emailPromises);
+
+  // Show success
+  document.getElementById('fleet-quote-form').style.display = 'none';
+  document.getElementById('fleet-success').style.display = 'block';
+}
+</script>
+</body>
+</html>
